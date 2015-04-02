@@ -93,6 +93,8 @@ exports.handler = function(event, context) {
 
    if ( size == 0 ) {
        console.log('S3ToLoggly skipping object of size zero')
+   } else if (key.indexOf("elb-access-logs") === -1) {
+       console.log('S3ToLoggly skipping object not starting with elb-access-logs');
    } else {
        // Download the logfile from S3, and upload to loggly.
        async.waterfall([
