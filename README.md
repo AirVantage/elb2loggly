@@ -25,16 +25,11 @@ The resulting zip (elb2loggly.zip) is what you will upload to AWS in step 4 belo
 For all of the AWS setup, I used the AWS console.  Below, you will find a high-level description of how to do this.  I also found [this blog post](http://alestic.com/2014/11/aws-lambda-cli) on how to set things up using the command line.
 
 ### Setup roles
-1. Create the role the lambda function assumes when running.
+* Create the role the lambda function assumes when running.
   1. https://console.aws.amazon.com/iam/home#roles
   2. Create New Role *(I named it 'lambda_elb2loggly_execution_role')*
   3. Select Role Type **AWS Lambda**
   4. Attach Policy **AmazonS3ReadOnlyAccess**
-2. Create the role that S3 uses to invoke lambda functions.
-  1. https://console.aws.amazon.com/iam/home#roles
-  2. Create New Role *(I named it 's3_invoke_lambda_role')*
-  2. Select Role Type **AWS S3 Invocation for Lambda Functions**
-  3. Attach Policy **AWSLambdaRole**
 
 ### Create and upload the elb2loggly Lamba function
 1. Create lambda function
@@ -51,7 +46,7 @@ For all of the AWS setup, I used the AWS console.  Below, you will find a high-l
   1. https://console.aws.amazon.com/lambda/home
   2. Click 'Configure event source' (under your lambda function elb2loggly)
   3. Choose the bucket that contains your ELB logs.
-  4. Select the Invocation Role that S3 assumes when invoking elb2loggly ('s3_invoke_lambda_role' )
+  4. Choose Object Created as the Event Type
 
 ## Configure ELB to log	to S3
 I'll assume you already have your ELB set up, just not logging.
