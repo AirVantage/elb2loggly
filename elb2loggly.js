@@ -51,14 +51,16 @@ var COLUMNS = [
               'received_bytes',
               'sent_bytes',
               'request_method', // Split from request
-              'request_url'     // Split from request
+              'request_url',    // Split from request
+              'user_agent',
+              'ssl_cipher',
+              'ssl_protocol'
               ];
 
 // Parse elb log into component parts.
 var parse_s3_log = function(data, encoding, done) {
 
   if ( data.length == 12 ) {
-
       // Split clientip:port and backendip:port at index 2,3
       data.splice(3,1,data[3].split(':'))
       data.splice(2,1,data[2].split(':'))
@@ -78,8 +80,29 @@ var parse_s3_log = function(data, encoding, done) {
 	  console.error('ELB log length ' + data.length + ' did not match COLUMNS length ' + COLUMNS.length)
       }
   }
+  else if (data.length == 15) {
+      // Split clientip:port and backendip:port at index 2,3
+      data.splice(3,1,data[3].split(':'))
+      data.splice(2,1,data[2].split(':'))
+      data = _.flatten(data)
+      // Extract the method from the request.  (WTF on Amazon's decision to keep these as one string.)
+      var url_mash = data[13]
+      var url_mash = url_mash.split(' ',2)
+      //console.log("Splitted request, PROTO=" + url_mash[0] + ", URL=" + url_mash[1])
+      data.splice(13,1,url_mash[0])
+      data.splice(14,0,url_mash[1])
+      //console.log("data=" + data)
+      if ( data.length == COLUMNS.length ) {
+        log =  _.zipObject(COLUMNS, data)
+        this.push(log)
+      } else {
+	  console.error('ELB log length ' + data.length + ' did not match COLUMNS length ' + COLUMNS.length)
+      }
+  }
+  else {
+      console.error('Error parsing s3 logs, ELB data length != 12 or 15, data.length=' + data.length)
+  }
   done();
-
 };
 
 
