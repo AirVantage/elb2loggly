@@ -46,7 +46,7 @@ For all of the AWS setup, I used the AWS console.  Below, you will find a high-l
   1. https://console.aws.amazon.com/lambda/home
   2. Click 'Configure event source' (under your lambda function elb2loggly)
   3. Choose the bucket that contains your ELB logs.
-  4. Choose Object Created as the Event Type
+  4. Choose Object Put as the Event Type
 
 ## Configure ELB to log	to S3
 I'll assume you already have your ELB set up, just not logging.
