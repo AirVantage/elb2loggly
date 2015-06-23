@@ -7,7 +7,7 @@ http://aws.amazon.com/lambda/
 ## Get the code and prep it for the uploading to AWS
 1. Clone the git repo
 ```bash
-git clone https://github.com/cboscolo/elb2loggly.git
+git clone https://github.com/AirVantage/elb2loggly.git
 cd elb2loggly
 ```
 2. Optionally, edit elb2loggly.js with proper Loggly customer token and optional log tags. (You can set these as tags on the S3 Bucket that contains the logs.)
@@ -30,6 +30,7 @@ For all of the AWS setup, I used the AWS console.  Below, you will find a high-l
   2. Create New Role *(I named it 'lambda_elb2loggly_execution_role')*
   3. Select Role Type **AWS Lambda**
   4. Attach Policy **AmazonS3ReadOnlyAccess**
+  5. Attach Policy **CloudWatchLogsFullAccess**
 
 ### Create and upload the elb2loggly Lamba function
 1. Create lambda function
@@ -39,9 +40,11 @@ For all of the AWS setup, I used the AWS console.  Below, you will find a high-l
     * Upload lambda function (zip file you made above.)
     * File name: elb2loggly.js
     * Handler name: handler
-    * Role name: **lambda_elb2loggly_execution_role** *(created in step 1.2)
+    * Role name: **lambda_elb2loggly_execution_role** *(created previously)
     * I left the memory at 128MB.  In my testing with ELBs set upload every 5 minutes this worked for me.  You may need to bump this up if your ELB logs are larger.  
-    * Same advice for Timer, I set it to 10 seconds.
+    * Same advice for Timer, First set it to 10 seconds. Then have a look at CloudWatch duration metrics for the lambda and adjust the time out value if needed.
+    * You might have a look at the CloudWatch log stream created for your lambda (/aws/lambda/...) and filter streams with the "timed out" string. If you find events matching this criteria, then increase the time out value.
+    
 2. Configure Event Source to call elb2loggly when logs added to S3 bucket.
   1. https://console.aws.amazon.com/lambda/home
   2. Click 'Configure event source' (under your lambda function elb2loggly)
