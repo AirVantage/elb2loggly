@@ -60,15 +60,15 @@ var COLUMNS = [
 var parse_s3_log = function(data, encoding, done) {
     if (data.length == 12) {
         // Split clientip:port and backendip:port at index 2,3
-        data.splice(3,1,data[3].split(':'))
-        data.splice(2,1,data[2].split(':'))
+        data.splice(3, 1, data[3].split(':'))
+        data.splice(2, 1, data[2].split(':'))
         data = _.flatten(data)
 
         // Pull the method from the request.  (WTF on Amazon's decision to keep these as one string.)
         var url_mash = data.pop()
-        var url_mash = url_mash.split(' ',2)
+        var url_mash = url_mash.split(' ', 2)
 
-        data.push(url_mash[0],url_mash[1])
+        data.push(url_mash[0], url_mash[1])
         if ( data.length == COLUMNS.length ) {
             log =  _.zipObject(COLUMNS, data)
             this.push(log);
@@ -78,23 +78,32 @@ var parse_s3_log = function(data, encoding, done) {
     }
     else if (data.length == 15) {
         // Split clientip:port and backendip:port at index 2,3
-        data.splice(3,1,data[3].split(':'))
-        data.splice(2,1,data[2].split(':'))
+        if (data[3].indexOf(':') == -1) {
+            data.splice(3, 1, ['-','-'])
+        }
+        else {
+            data.splice(3, 1, data[3].split(':'))
+        }
+        data.splice(2, 1, data[2].split(':'))
         data = _.flatten(data)
         // Extract the method from the request.  (WTF on Amazon's decision to keep these as one string.)
         var url_mash = data[13]
-        var url_mash = url_mash.split(' ',2)
+        var url_mash = url_mash.split(' ', 2)
         //console.log("Splitted request, PROTO=" + url_mash[0] + ", URL=" + url_mash[1])
-        data.splice(13,1,url_mash[0])
-        data.splice(14,0,url_mash[1])
+        data.splice(13, 1, url_mash[0])
+        //var url = url_mash[1]
+        //url.replace(/&password=.+&/g, '&password=*****&')
+        //data.splice(14, 0, url)
+        data.splice(14, 0, url_mash[1])
         //console.log("data=" + data)
-        if ( data.length == COLUMNS.length ) {
+        if (data.length == COLUMNS.length) {
             log =  _.zipObject(COLUMNS, data)
             this.push(log)
         }
         else {
             console.error('ELB log length ' + data.length + ' did not match COLUMNS length ' + COLUMNS.length
                 + ", data=" + data)
+            console.error('backend = ' + backend)
         }
     }
     else {
@@ -183,8 +192,7 @@ exports.handler = function(event, context) {
                     );
                 }
                 else {
-                    console.log(
-                        'Successfully uploaded ' + bucket + '/' + key + ' to ' + LOGGLY_URL);
+                    console.log('Successfully uploaded ' + bucket + '/' + key + ' to ' + LOGGLY_URL);
                 }
                 context.done();
             }
