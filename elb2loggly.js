@@ -89,13 +89,12 @@ var parse_s3_log = function(data, encoding, done) {
         // Extract the method from the request.  (WTF on Amazon's decision to keep these as one string.)
         var url_mash = data[13]
         var url_mash = url_mash.split(' ', 2)
-        //console.log("Splitted request, PROTO=" + url_mash[0] + ", URL=" + url_mash[1])
         data.splice(13, 1, url_mash[0])
-        //var url = url_mash[1]
-        //url.replace(/&password=.+&/g, '&password=*****&')
-        //data.splice(14, 0, url)
-        data.splice(14, 0, url_mash[1])
-        //console.log("data=" + data)
+        data.splice(14, 0,
+            url_mash[1]
+                .replace(/password=[^&]+/g, "password=*****")
+                .replace(/client_secret=[^&]+/,"client_secret=*****")
+        )
         if (data.length == COLUMNS.length) {
             log =  _.zipObject(COLUMNS, data)
             this.push(log)
