@@ -37,6 +37,22 @@ else console.log('Loading elb2loggly, NO default Loggly endpoint, must be set in
 
 // AWS logs contain the following fields: (Note: a couple are parsed from within the field.)
 // http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/access-log-collection.html
+var COLUMNS_15 = [
+    'timestamp',
+    'elb',
+    'client_ip', 'client_port', // split from client
+    'backend', 'backend_port',
+    'request_processing_time',
+    'backend_processing_time',
+    'response_processing_time',
+    'elb_status_code',
+    'backend_status_code',
+    'received_bytes',
+    'sent_bytes',
+    'request_method', // Split from request
+    'request_url'     // Split from request
+    ];
+
 var COLUMNS = [
     'timestamp',
     'elb',
@@ -60,7 +76,12 @@ var COLUMNS = [
 var parse_s3_log = function(data, encoding, done) {
     if (data.length == 12) {
         // Split clientip:port and backendip:port at index 2,3
-        data.splice(3, 1, data[3].split(':'))
+        if (data[3].indexOf(':') == -1) {
+            data.splice(3, 1, ['-','-'])
+        }
+        else {
+            data.splice(3, 1, data[3].split(':'))
+        }
         data.splice(2, 1, data[2].split(':'))
         data = _.flatten(data)
 
@@ -69,11 +90,12 @@ var parse_s3_log = function(data, encoding, done) {
         var url_mash = url_mash.split(' ', 2)
 
         data.push(url_mash[0], url_mash[1])
-        if ( data.length == COLUMNS.length ) {
-            log =  _.zipObject(COLUMNS, data)
+        if (data.length == COLUMNS_15.length) {
+            log =  _.zipObject(COLUMNS_15, data)
             this.push(log);
         } else {
-            console.error('ELB log length ' + data.length + ' did not match COLUMNS length ' + COLUMNS.length)
+            console.error('ELB log length ' + data.length + ' did not match COLUMNS length ' + COLUMNS_15.length
+                + ", data=" + data)
         }
     }
     else if (data.length == 15) {
